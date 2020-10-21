@@ -1,0 +1,76 @@
+﻿@using BlazorDapperCRUD.Data
+@page "/videoaddedit/{id:int}"
+@inject IVideoService VideoService
+@inject NavigationManager NavigationManager
+
+<h1>@pagetitle</h1>
+
+<EditForm Model="@video" OnValidSubmit="@VideoSave">
+    <table>
+        <tr>
+            <td>Video Title:</td>
+            <td><input type="text" @bind="video.Title" required /></td>
+        </tr>
+        <tr>
+            <td>Date Published:</td>
+            <td><input type="text" @bind="video.DatePublished" required min="1900-01-01" max="2050-12-31" /></td>
+        </tr>
+        <tr>
+            <td>Is Active:</td>
+            <td><input type="checkbox" @bind="video.IsActive" required /></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align: center">
+                <input type="submit" value=@buttontext />
+                <input type="button" value="Cancel" @onclick="@Cancel" />
+            </td>
+        </tr>
+    </table>
+
+
+</EditForm>
+
+@code {
+    Video video = new Video();
+
+    [Parameter] public int id { get; set; }
+
+    public string pagetitle = "Add a video";
+    public string buttontext = "Add";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id == 0)
+        {
+            DateTime defaultDate = new DateTime(2000, 12, 31);
+            video.DatePublished = defaultDate;
+            video.IsActive = true;
+        }
+        else
+        {
+            video = await VideoService.Video_GetOne(id);
+            pagetitle = "Edit Video";
+            buttontext = "Update";
+
+        }
+    }
+    protected async Task VideoSave()
+    {
+        if (video.VideoID == 0)
+        {
+            await VideoService.VideoInsert(video);
+
+        }
+        else
+        {
+            await VideoService.VideoUpdate(video);
+
+        }
+        NavigationManager.NavigateTo("/videolist");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("/videolist");
+    }
+}
